@@ -33,6 +33,7 @@ async function init (){
         'Update an employee role',
         'Update employee managers',
         'View employees by manager',
+        'View employees by department',
         'Delete departments,role,and employees',
         'Department salaries'
 
@@ -229,7 +230,6 @@ async function init (){
     init();
   };
 
-
   if(answer.whatToDo === 'Update employee managers'){
     const employeeSql = `SELECT CONCAT(first_name, \' \', last_name)AS name, id FROM employee`;
     const [rowsEmployee] = await connQuery(employeeSql);
@@ -284,9 +284,6 @@ async function init (){
     init();
   }
 
-
-
-
   if(answer.whatToDo === 'View employees by manager'){
 
     const sql = `SELECT a.id, CONCAT(b.first_name, \' \', b.last_name,\' \') AS manager
@@ -319,6 +316,35 @@ async function init (){
     WHERE CONCAT(b.first_name, \' \', b.last_name,\' \') = "${answer.manager}"
     ORDER BY a.id
     `;
+    const [rows2] = await connQuery(sql2);
+    console.table(rows2);
+    init();
+  }
+
+  if(answer.whatToDo === 'View employees by department'){
+    const sql = `SELECT name FROM department;`;
+    const [rows] = await connQuery(sql);
+    const departments = [];
+    for (let i = 0; i<rows.length; i++){
+      departments.push(rows[i].name);
+    };
+
+    const answer = await inquirer.prompt([
+      {
+        type: 'list',
+        name:'department',
+        message:'Which department do you want to see the employees',
+        choices: departments
+      }]);
+
+      const sql2 = `SELECT employee.id, employee.first_name AS "first name", employee.last_name AS "last name", role.title AS "role title"
+      FROM employee
+      JOIN role ON employee.role_id = role.id
+      JOIN department ON role.department_id = department.id
+      WHERE department.name = "${answer.department}"
+      ORDER BY employee.id
+      `;
+
     const [rows2] = await connQuery(sql2);
     console.table(rows2);
     init();
