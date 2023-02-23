@@ -13,4 +13,4 @@ mysql
 ## Link
 
 repository: https://github.com/houchenghao/Employee-Tracker
-video: 
+video: https://drive.google.com/file/d/1KDlZ3sBxmmSFjDvdNCgHUbbxXT55woAu/view
