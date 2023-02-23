@@ -38,7 +38,6 @@ async function init (){
         'Delete role',
         'Delete employee',
         'Department salaries'
-
       ],
     }]
   )
@@ -197,11 +196,21 @@ async function init (){
       employee.push(rowsEmployee[i].name);
     };
 
+    const roleSql = `SELECT id, title FROM role`;
+    const [rowsroles] = await connQuery(roleSql);
+    const roles = [];
+    
+
+    for(let i = 0; i<rowsroles.length;i++){
+      roles.push(rowsroles[i].title);
+    };
+
+
     const answer = await inquirer.prompt([
       {
         type: 'list',
         name:'employee',
-        message:'select the manager',
+        message:'select the employee',
         choices: employee
       },
       {
@@ -213,9 +222,9 @@ async function init (){
     ]);
 
     var roleID = 0;        
-    for(let i = 0; i<rowsRole.length;i++){
-      if(answer.role === rowsRole[i].title){
-        roleID = rowsRole[i].id;
+    for(let i = 0; i<rowsroles.length;i++){
+      if(answer.role === rowsroles[i].title){
+        roleID = rowsroles[i].id;
         break;
       }
     }
