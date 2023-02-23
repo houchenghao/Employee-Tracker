@@ -34,7 +34,9 @@ async function init (){
         'Update employee managers',
         'View employees by manager',
         'View employees by department',
-        'Delete departments,role,and employees',
+        'Delete department',
+        'Delete role',
+        'Delete employee',
         'Department salaries'
 
       ],
@@ -51,7 +53,7 @@ async function init (){
   if(answer.whatToDo === 'View All Roles'){
     const sql = `SELECT role.title AS "job title", role.id AS "role id", department.name AS "department name", role.salary AS "salary"
               FROM role 
-              JOIN department ON role.department_id = department.id
+              LEFT JOIN department ON role.department_id = department.id
               ORDER BY role.id`;
     
     const [rows] = await connQuery(sql);
@@ -63,7 +65,7 @@ async function init (){
     const sql = `SELECT a.id, a.first_name AS "first name", a.last_name AS "last name", role.title AS "role title", role.salary AS "salary", department.name AS department, CONCAT(b.first_name, \' \', b.last_name,\' \') AS manager
             FROM employee AS a
             JOIN role ON a.role_id = role.id
-            JOIN department ON role.department_id = department.id
+            lEFT JOIN department ON role.department_id = department.id
             LEFT JOIN employee AS b ON a.manager_id = b.id
             ORDER BY a.id
             `;
@@ -195,7 +197,6 @@ async function init (){
       employee.push(rowsEmployee[i].name);
     };
 
-
     const answer = await inquirer.prompt([
       {
         type: 'list',
@@ -319,7 +320,7 @@ async function init (){
     const [rows2] = await connQuery(sql2);
     console.table(rows2);
     init();
-  }
+  };
 
   if(answer.whatToDo === 'View employees by department'){
     const sql = `SELECT name FROM department;`;
@@ -350,7 +351,101 @@ async function init (){
     init();
   }
 
+  if(answer.whatToDo === 'Delete department'){
+    const getDepartmentNameSql = `SELECT name FROM department;`;
+    const [rows] = await connQuery(getDepartmentNameSql);
+    const departments = [];
+    for (let i = 0; i<rows.length; i++){
+      departments.push(rows[i].name);
+    };
+    
+    const departmentToDelete = await inquirer.prompt([
+      {
+        type: 'list',
+        name:'department',
+        message:'select the department to delete',
+        choices: departments
+      }
+    ]);
 
+    deleteSql = `DELETE FROM department WHERE name = '${departmentToDelete.department}'`;
+    await connQuery(deleteSql);
+
+    init();
+  };
+
+  if(answer.whatToDo === 'Delete role'){
+
+    const getRoleNameSql = `SELECT title FROM role;`;
+    const [rows] = await connQuery(getRoleNameSql);
+    const roles = [];
+    for (let i = 0; i<rows.length; i++){
+      roles.push(rows[i].title);
+    };
+
+    const roleToDelete = await inquirer.prompt([
+      {
+        type: 'list',
+        name:'role',
+        message:'select the role to delete',
+        choices: roles
+      }
+    ]);
+  
+    deleteSql = `DELETE FROM role WHERE title = '${roleToDelete.role}'`;
+    await connQuery(deleteSql);
+    init();
+  };
+
+  if(answer.whatToDo === 'Delete employee'){
+
+    const getemployeeNameSql = `SELECT CONCAT(first_name, \' \', last_name,\' \')AS name FROM employee`;
+    const [rows] = await connQuery(getemployeeNameSql);
+    const employees = [];
+    for (let i = 0; i<rows.length; i++){
+      employees.push(rows[i].name);
+    };
+
+    const employeeToDelete = await inquirer.prompt([
+      {
+        type: 'list',
+        name:'employee',
+        message:'select the employee to delete',
+        choices: employees
+      }
+    ]);
+  
+    deleteSql = `DELETE FROM employee WHERE CONCAT(first_name, \' \', last_name,\' \') = '${employeeToDelete.employee}'`;
+    await connQuery(deleteSql);
+    init();
+  };
+
+  if(answer.whatToDo === 'Department salaries'){
+
+    const getDepartmentNameSql = `SELECT name FROM department;`;
+    const [rows] = await connQuery(getDepartmentNameSql);
+    const departments = [];
+    for (let i = 0; i<rows.length; i++){
+      departments.push(rows[i].name);
+    };
+    const departmentsalery = await inquirer.prompt([
+      {
+        type: 'list',
+        name:'department',
+        message:'select the department salaries to view',
+        choices: departments
+      }
+    ]);
+
+    const sql2 = `SELECT department.name AS "department", SUM(role.salary) AS "Total Salary"
+    FROM employee
+    LEFT JOIN role ON employee.role_id = role.id
+    LEFT JOIN department ON role.department_id = department.id
+    WHERE department.name = "${departmentsalery.department}"
+    `;
+    const [rows2] = await connQuery(sql2);
+    console.table(rows2);
+    init();
+  }
 }
-
 init();
